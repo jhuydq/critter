@@ -11,7 +11,13 @@ import java.util.List;
 
 @Repository
 public interface PetRepository extends JpaRepository<Pet, Long> {
-//
-//    @Query()
-//    public List<Pet> findPetsByOwnerId(Customer owner);
+
+    @Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")
+    public List<Pet> findPetsByOwnerId(Long ownerId);
+
+    @Query("SELECT p FROM Pet p WHERE p.owner = :owner")
+    public List<Pet> findPetsByOwner(Customer owner);
+
+    @Query("SELECT p.owner FROM Pet p WHERE p.id = :petId")
+    public Customer findOwnerByPetId(Long petId);
 }

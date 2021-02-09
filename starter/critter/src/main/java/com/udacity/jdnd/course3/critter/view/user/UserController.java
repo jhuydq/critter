@@ -1,7 +1,9 @@
 package com.udacity.jdnd.course3.critter.view.user;
 
 import com.udacity.jdnd.course3.critter.entity.Customer;
-import com.udacity.jdnd.course3.critter.service.CustomerService;
+import com.udacity.jdnd.course3.critter.entity.Employee;
+import com.udacity.jdnd.course3.critter.entity.Pet;
+import com.udacity.jdnd.course3.critter.service.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,12 @@ public class UserController {
     @Autowired
     CustomerService customerService;
 
+    @Autowired
+    PetService petService;
+
+    @Autowired
+    EmployeeService employeeService;
+
     @PostMapping("/customer")
     public CustomerDTO saveCustomer(@RequestBody CustomerDTO customerDTO){
         return convertToCustomerDTO(customerService.saveCustomer(convertToCustomer(customerDTO)));
@@ -39,27 +47,37 @@ public class UserController {
 
     @GetMapping("/customer/pet/{petId}")
     public CustomerDTO getOwnerByPet(@PathVariable long petId){
-        throw new UnsupportedOperationException();
+        return convertToCustomerDTO(petService.findOwnerByPetId(petId));
     }
 
     @PostMapping("/employee")
     public EmployeeDTO saveEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        throw new UnsupportedOperationException();
+        return convertToEmployeeDTO(employeeService.saveEmployee(convertToEmployee(employeeDTO)));
     }
 
     @PostMapping("/employee/{employeeId}")
     public EmployeeDTO getEmployee(@PathVariable long employeeId) {
-        throw new UnsupportedOperationException();
+        return convertToEmployeeDTO(employeeService.findEmployeeById(employeeId));
     }
 
     @PutMapping("/employee/{employeeId}")
     public void setAvailability(@RequestBody Set<DayOfWeek> daysAvailable, @PathVariable long employeeId) {
-        throw new UnsupportedOperationException();
+        try{
+            Employee employee = employeeService.setAvailability(daysAvailable, employeeId);
+        }catch (EmployeeExceptionNotFound e){
+            e.printStackTrace();
+        }
     }
 
     @GetMapping("/employee/availability")
     public List<EmployeeDTO> findEmployeesForService(@RequestBody EmployeeRequestDTO employeeDTO) {
-        throw new UnsupportedOperationException();
+        List<EmployeeDTO> employeeDTOList = new ArrayList<>();
+        List<Employee> employeeList = employeeService.findEmployeesForService(employeeDTO.getSkills(), employeeDTO.getDate().getDayOfWeek());
+        employeeList.forEach(employee -> {
+            employeeDTOList.add(convertToEmployeeDTO(employee));
+        });
+
+        return employeeDTOList;
     }
 
     private CustomerDTO convertToCustomerDTO(Customer customer){
@@ -81,8 +99,33 @@ public class UserController {
         Customer customer = new Customer();
         BeanUtils.copyProperties(customerDTO, customer);
 
-        //TODO: petIds --> petList ?
+        //petIds -> petList
+        List<Pet> petList = new ArrayList<>();
+        try{
+            customerDTO.getPetIds().forEach(petId ->{
+                try {
+                    petList.add(petService.findPetById(petId));
+                } catch (PetExceptionNotFound petExceptionNotFound) {
+                    petExceptionNotFound.printStackTrace();
+                }
+            });
+            customer.setPetList(petList);
+        }catch (Exception e){
+            System.out.println("petIds null");
+        }
         return customer;
+    }
+
+    private Employee convertToEmployee(EmployeeDTO employeeDTO){
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        return employee;
+    }
+
+    private EmployeeDTO convertToEmployeeDTO(Employee employee){
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        BeanUtils.copyProperties(employee, employeeDTO);
+        return employeeDTO;
     }
 
 }

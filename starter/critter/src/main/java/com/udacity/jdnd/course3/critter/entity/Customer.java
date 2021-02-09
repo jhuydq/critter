@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,6 +27,25 @@ public class Customer {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     private List<Pet> petList;
+
+//    public boolean addPet(Pet pet){
+//        if(petList == null){
+//            petList = new ArrayList<>();
+//        }
+//        if(!petList.contains(pet)){
+//            petList.add(pet);
+//            pet.setOwner(this);
+//            return true;
+//        }
+//        return false;
+//    }
+//
+//    public void removePet(Pet pet){
+//        if(petList != null && petList.contains(pet)){
+//            petList.remove(pet);
+//            pet.setOwner(null);
+//        }
+//    }
 
 
 }
